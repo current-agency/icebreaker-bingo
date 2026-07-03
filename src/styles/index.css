@@ -1,0 +1,20 @@
+@import './fonts.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Aeonik", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #E7E8E3;
+  color: #2C2C2C;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
