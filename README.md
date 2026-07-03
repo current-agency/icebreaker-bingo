@@ -1,11 +1,23 @@
+# Icebreaker Bingo Game
 
-  # Icebreaker Bingo Game
+![CI](https://github.com/current-agency/icebreaker-bingo/actions/workflows/ci.yml/badge.svg)
 
-  This is a code bundle for Icebreaker Bingo Game. The original project is available at https://www.figma.com/design/wXKw4V5L7a0C7zteGfivnU/Icebreaker-Bingo-Game.
+Multiplayer icebreaker bingo for breakout rooms, with realtime scoreboard sync via Supabase.
 
-  ## Running the code
+Original Figma design: https://www.figma.com/design/wXKw4V5L7a0C7zteGfivnU/Icebreaker-Bingo-Game
 
-  Run `npm i` to install the dependencies.
+## Development
 
-  Run `npm run dev` to start the development server.
-  # icebreaker-bingo
+```bash
+npm install
+npm run dev
+```
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Production build |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | Run TypeScript type checking |
