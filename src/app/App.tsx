@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { BingoGame } from './components/BingoGame';
+import { ResultsAnalytics } from './components/ResultsAnalytics';
 import { serverFetch } from './lib/supabase';
-import { FONT_SANS, FONT_MONO, monoLabelStyle, pageStyle } from './lib/theme';
+import { FONT_SANS, FONT_MONO, monoButtonStyle, monoLabelStyle, pageStyle } from './lib/theme';
 import { formatCount } from './lib/bingo';
 import { useScoreboardRooms } from './lib/useScoreboardRooms';
 import type { RoomSummary, RoomState } from './lib/types';
@@ -96,7 +97,7 @@ function Scoreboard({ currentCode }: { currentCode?: string }) {
   );
 }
 
-function Lobby({ onJoin }: { onJoin: (room: RoomState) => void }) {
+function Lobby({ onJoin, onViewResults }: { onJoin: (room: RoomState) => void; onViewResults: () => void }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -209,17 +210,38 @@ function Lobby({ onJoin }: { onJoin: (room: RoomState) => void }) {
         </div>
 
         <Scoreboard />
+
+        <div style={{ marginTop: 32, textAlign: 'center' }}>
+          <button type="button" onClick={onViewResults} style={monoButtonStyle('outline')}>
+            View game results →
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
+type AppView = 'lobby' | 'game' | 'analytics';
+
 export default function App() {
   const [room, setRoom] = useState<RoomState | null>(null);
+  const [view, setView] = useState<AppView>('lobby');
 
-  if (!room) {
-    return <Lobby onJoin={setRoom} />;
+  if (view === 'analytics') {
+    return <ResultsAnalytics onBack={() => setView('lobby')} />;
   }
 
-  return <BingoGame initialRoom={room} onLeave={() => setRoom(null)} />;
+  if (room) {
+    return (
+      <BingoGame
+        initialRoom={room}
+        onLeave={() => {
+          setRoom(null);
+          setView('lobby');
+        }}
+      />
+    );
+  }
+
+  return <Lobby onJoin={setRoom} onViewResults={() => setView('analytics')} />;
 }

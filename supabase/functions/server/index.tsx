@@ -2,20 +2,19 @@ import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import * as kv from "./kv_store.tsx";
+import {
+  buildAnalyticsSummary,
+  emptyAnalyticsSummary,
+  isStoredRoom,
+  type AnalyticsSummary,
+  type StoredRoom,
+} from "./analytics.ts";
+
+const RESULTS_KEY = "results:published";
 
 const FREE_SPACE_INDEX = 12;
 const BOARD_SIZE = 25;
 const ROOM_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-interface StoredRoom {
-  code: string;
-  card: string[];
-  clicked_cells: boolean[];
-  names: string[];
-  bingo_count: number;
-  created_at: string;
-  updated_at?: string;
-}
 
 interface RoomScoreboardEntry {
   code: string;
@@ -70,6 +69,20 @@ function roomKey(code: string) {
 function isExpired(room: StoredRoom): boolean {
   if (!room.created_at) return false;
   return Date.now() - new Date(room.created_at).getTime() > ROOM_TTL_MS;
+}
+
+async function loadAllRooms(): Promise<StoredRoom[]> {
+  const index: string[] = (await kv.get("rooms:index")) ?? [];
+  const rooms = await Promise.all(
+    index.map(async (code) => await kv.get(roomKey(code)) as StoredRoom | null),
+  );
+  return rooms.filter(isStoredRoom);
+}
+
+async function loadPublishedResults(): Promise<AnalyticsSummary | null> {
+  const published = await kv.get(RESULTS_KEY) as AnalyticsSummary | null;
+  if (!published || typeof published !== "object") return null;
+  return published;
 }
 
 const app = new Hono();
@@ -153,6 +166,33 @@ app.get("/make-server-dff036a6/rooms", async (c) => {
       .filter((room): room is RoomScoreboardEntry => room !== null)
       .sort((a, b) => (b.bingo_count ?? 0) - (a.bingo_count ?? 0))
   );
+});
+
+// Read-only published game results (shared by everyone)
+app.get("/make-server-dff036a6/results", async (c) => {
+  const published = await loadPublishedResults();
+  if (published) return c.json(published);
+
+  const rooms = await loadAllRooms();
+  if (rooms.length === 0) return c.json(emptyAnalyticsSummary());
+  return c.json(buildAnalyticsSummary(rooms));
+});
+
+// One-time freeze of current results — requires ANALYTICS_PUBLISH_KEY header
+app.post("/make-server-dff036a6/results/publish", async (c) => {
+  const secret = Deno.env.get("ANALYTICS_PUBLISH_KEY");
+  if (!secret) {
+    return c.json({ error: "Publishing is not configured on the server." }, 503);
+  }
+  const provided = c.req.header("x-publish-key");
+  if (provided !== secret) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const rooms = await loadAllRooms();
+  const summary = buildAnalyticsSummary(rooms, new Date().toISOString());
+  await kv.set(RESULTS_KEY, summary);
+  return c.json(summary);
 });
 
 Deno.serve(app.fetch);
