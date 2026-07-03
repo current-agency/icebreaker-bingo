@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
 import path from 'path';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 function figmaAssetResolver() {
@@ -20,5 +20,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src/app'),
     },
+  },
+  test: {
+    include: ['supabase/functions/**/*.test.ts', 'src/**/*.test.ts'],
   },
 });
