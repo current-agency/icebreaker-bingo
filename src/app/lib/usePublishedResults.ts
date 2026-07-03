@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isAnalyticsSummary } from './analyticsValidation';
 import { serverFetch } from './supabase';
 import type { AnalyticsSummary } from './types';
 
@@ -16,7 +17,9 @@ export function usePublishedResults() {
       try {
         const res = await serverFetch('/results');
         if (!res.ok) throw new Error('Could not load game results.');
-        if (!cancelled) setSummary(await res.json());
+        const data: unknown = await res.json();
+        if (!isAnalyticsSummary(data)) throw new Error('Game results were in an unexpected format.');
+        if (!cancelled) setSummary(data);
       } catch (err) {
         if (!cancelled) {
           setSummary(null);
@@ -27,11 +30,10 @@ export function usePublishedResults() {
       }
     };
 
-    const timeoutId = window.setTimeout(() => { void load(); }, 0);
+    void load();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
     };
   }, []);
 

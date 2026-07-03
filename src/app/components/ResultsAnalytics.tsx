@@ -216,7 +216,7 @@ export function ResultsAnalytics({ onBack }: ResultsAnalyticsProps) {
 
         {!loading && !error && summary && summary.roomCount === 0 && (
           <p style={{ fontFamily: FONT_SANS, color: '#5C5C5C' }}>
-            No game results are published yet.
+            No game data yet.
           </p>
         )}
 

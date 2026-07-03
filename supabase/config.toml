@@ -1,0 +1,5 @@
+# Supabase CLI config — used for edge function deploys only.
+project_id = "nkgkislbuhqxoxhxjwvu"
+
+[functions.make-server-dff036a6]
+verify_jwt = true

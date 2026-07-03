@@ -54,7 +54,7 @@ function isValidName(rawName: string): boolean {
 function shouldIncludeCell(room: StoredRoom, index: number): boolean {
   if (index === FREE_SPACE_INDEX) return false;
   if (room.card[index] === "FREE") return false;
-  if (room.clicked_cells && !room.clicked_cells[index]) return false;
+  if (!room.clicked_cells?.[index]) return false;
   return isValidName(room.names[index] ?? "");
 }
 
